@@ -14,6 +14,8 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import org.json.JSONException;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -70,40 +72,6 @@ public class ForecastFragment extends Fragment {
                 "Wednesday - Foggy 79/68",
                 "Wednesday - Foggy 79/68",
                 "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
                 "Wednesday - Foggy 79/68"
         };
 
@@ -120,10 +88,10 @@ public class ForecastFragment extends Fragment {
         return rootView;
     }
 
-    public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
+    public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
         private final String LOG_TAG = FetchWeatherTask.class.getSimpleName();
 
-        protected Void doInBackground(String... params) {
+        protected String[] doInBackground(String... params) {
             String format = "json";
             String units = "metric";
             int numDays = 7;
@@ -139,8 +107,7 @@ public class ForecastFragment extends Fragment {
             String forecastJsonStr = null;
 
             try {
-                // http://api.openweathermap.org/data/2.5/forecast/daily?q=08801&mode=json&units=metric&cnt=7
-                // http://localhost:8080
+
                 final String FORECAST_BASE_URL = "http://api.openweathermap.org/data/2.5/forecast/daily?";
                 final String QUERY_PARAM = "q";
                 final String FORMAT_PARAM = "mode";
@@ -158,8 +125,6 @@ public class ForecastFragment extends Fragment {
                 // Possible parameters are available at OWM's forecast API page, at
                 // http://openweathermap.org/API#forecast
                 URL url = new URL(builtUri.toString());
-
-                Log.v(LOG_TAG, "Built URI " + builtUri.toString());
 
                 // Create the request to OpenWeatherMap, and open the connection
                 urlConnection = (HttpURLConnection) url.openConnection();
@@ -208,7 +173,23 @@ public class ForecastFragment extends Fragment {
                 }
             }
 
+            try {
+                return WeatherDataParser.getWeatherDataFromJson(forecastJsonStr, numDays);
+            } catch (JSONException jex) {
+                Log.e(LOG_TAG, jex.getMessage());
+            }
+
             return null;
+        }
+
+        @Override
+        protected void onPostExecute(String[] result) {
+            if (result != null) {
+                _forecastAdapter.clear();
+                for (String dayForecast : result) {
+                    _forecastAdapter.add(dayForecast);
+                }
+            }
         }
     }
 }
