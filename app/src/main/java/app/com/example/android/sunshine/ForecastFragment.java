@@ -106,7 +106,7 @@ public class ForecastFragment extends Fragment {
 
         protected String[] doInBackground(String... params) {
             String format = "json";
-            String units = "metric";
+            String units = "imperial";
             int numDays = 7;
 
             if (params.length == 0) return null;
