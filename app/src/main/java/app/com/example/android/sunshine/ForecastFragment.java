@@ -67,16 +67,8 @@ public class ForecastFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        
-        String[] forecastArray = {
-                "Today - Sunny - 85/63",
-                "Tomorrow - Partly Cloudy - 84/64",
-                "Tuesday - Rain 80/75",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68",
-                "Wednesday - Foggy 79/68"
-        };
+
+        String[] forecastArray = { };
 
         List<String> weeklyForecast = new ArrayList<String>(Arrays.asList(forecastArray));
 
@@ -97,6 +89,9 @@ public class ForecastFragment extends Fragment {
                 startActivity(intent);
             }
         });
+
+        FetchWeatherTask task = new FetchWeatherTask();
+        task.execute("08801");
 
         return rootView;
     }
