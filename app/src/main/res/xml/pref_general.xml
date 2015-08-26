@@ -19,7 +19,7 @@
     <ListPreference
         android:key="@string/pref_units_key"
         android:title="@string/pref_units_label"
-        android:defaultValue="imperial"
+        android:defaultValue="@string/pref_units_default"
         android:entries="@array/pref_units_list_titles"
         android:entryValues="@array/pref_units_list_values"
         android:negativeButtonText="@null"

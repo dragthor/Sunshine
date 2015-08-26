@@ -81,10 +81,7 @@ public class ForecastFragment extends Fragment {
                 prefs.getString(getString(R.string.pref_location_key),
                         getString(R.string.pref_location_default));
 
-        String units = prefs.getString(getString(R.string.pref_units_key),
-                getString(R.string.pref_units_default));
-
-        task.execute(location, units);
+        task.execute(location);
     }
 
     @Override
@@ -117,6 +114,10 @@ public class ForecastFragment extends Fragment {
 
         protected String[] doInBackground(String... params) {
             String format = "json";
+
+            // Always fetch metric, convert/manage locally conversion to imperial.
+            // We can avoid a service round trip when users changes preference.
+            String units = "metric";
             int numDays = 7;
 
             if (params.length == 0) return null;
@@ -140,7 +141,7 @@ public class ForecastFragment extends Fragment {
                 Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
                         .appendQueryParameter(QUERY_PARAM, params[0])
                         .appendQueryParameter(FORMAT_PARAM, format)
-                        .appendQueryParameter(UNITS_PARAM, params[1])
+                        .appendQueryParameter(UNITS_PARAM, units)
                         .appendQueryParameter(DAYS_PARAM, Integer.toString(numDays))
                         .build();
 
@@ -197,7 +198,11 @@ public class ForecastFragment extends Fragment {
             }
 
             try {
-                return WeatherDataParser.getWeatherDataFromJson(forecastJsonStr, numDays);
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+                String units_pref = prefs.getString(getString(R.string.pref_units_key),
+                        getString(R.string.pref_units_default));
+
+                return WeatherDataParser.getWeatherDataFromJson(forecastJsonStr, numDays, units_pref);
             } catch (JSONException jex) {
                 Log.e(LOG_TAG, jex.getMessage());
             }
