@@ -8,6 +8,7 @@ import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings.
@@ -18,6 +19,7 @@ import android.preference.PreferenceManager;
  * API Guide</a> for more information on developing a Settings UI.
  */
 public class SettingsActivity extends PreferenceActivity implements Preference.OnPreferenceChangeListener {
+    private final String LOG_TAG = SettingsActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,8 +30,11 @@ public class SettingsActivity extends PreferenceActivity implements Preference.O
 
         // For all preferences, attach an OnPreferenceChangeListener so the UI summary can be
         // updated when the preference changes.
-        //bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_location_key)));
-        //bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_units_key)));
+        Preference location = findPreference(getString(R.string.pref_location_key));
+        Preference units = findPreference(getString(R.string.pref_units_key));
+
+        bindPreferenceSummaryToValue(location);
+        bindPreferenceSummaryToValue(units);
     }
 
     /**
@@ -38,6 +43,8 @@ public class SettingsActivity extends PreferenceActivity implements Preference.O
      * is changed.)
      */
     private void bindPreferenceSummaryToValue(Preference preference) {
+        if (preference == null) return;
+
         // Set the listener to watch for value changes.
         preference.setOnPreferenceChangeListener(this);
 

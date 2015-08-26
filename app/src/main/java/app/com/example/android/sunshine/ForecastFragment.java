@@ -1,9 +1,11 @@
 package app.com.example.android.sunshine;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -56,8 +58,7 @@ public class ForecastFragment extends Fragment {
         int id = item.getItemId();
 
         if (id == R.id.action_refresh) {
-            FetchWeatherTask task = new FetchWeatherTask();
-            task.execute("08801");
+            updateWeather();
             return true;
         }
 
@@ -65,17 +66,35 @@ public class ForecastFragment extends Fragment {
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+
+        updateWeather();
+    }
+
+    private void updateWeather() {
+        FetchWeatherTask task = new FetchWeatherTask();
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+
+        String location =
+                prefs.getString(getString(R.string.pref_location_key),
+                        getString(R.string.pref_location_default));
+
+        String units = prefs.getString(getString(R.string.pref_units_key),
+                getString(R.string.pref_units_default));
+
+        task.execute(location, units);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-
-        String[] forecastArray = { };
-
-        List<String> weeklyForecast = new ArrayList<String>(Arrays.asList(forecastArray));
 
         _forecastAdapter = new ArrayAdapter<String>(
                 getActivity(),
                 R.layout.list_item_forecast,
-                R.id.list_item_forecast_textview, weeklyForecast);
+                R.id.list_item_forecast_textview, new ArrayList<String>());
 
         ListView listView = (ListView) rootView.findViewById(R.id.listview_forecast);
         listView.setAdapter(_forecastAdapter);
@@ -90,9 +109,6 @@ public class ForecastFragment extends Fragment {
             }
         });
 
-        FetchWeatherTask task = new FetchWeatherTask();
-        task.execute("08801");
-
         return rootView;
     }
 
@@ -101,7 +117,6 @@ public class ForecastFragment extends Fragment {
 
         protected String[] doInBackground(String... params) {
             String format = "json";
-            String units = "imperial";
             int numDays = 7;
 
             if (params.length == 0) return null;
@@ -125,7 +140,7 @@ public class ForecastFragment extends Fragment {
                 Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
                         .appendQueryParameter(QUERY_PARAM, params[0])
                         .appendQueryParameter(FORMAT_PARAM, format)
-                        .appendQueryParameter(UNITS_PARAM, units)
+                        .appendQueryParameter(UNITS_PARAM, params[1])
                         .appendQueryParameter(DAYS_PARAM, Integer.toString(numDays))
                         .build();
 
