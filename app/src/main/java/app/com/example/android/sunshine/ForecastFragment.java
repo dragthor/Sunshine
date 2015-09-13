@@ -2,11 +2,15 @@ package app.com.example.android.sunshine;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -26,11 +30,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
+import app.com.example.android.sunshine.data.WeatherContract;
+
 /**
  * A placeholder fragment containing a simple view.
  */
-public class ForecastFragment extends Fragment {
-
+public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+    private static final int FORECAST_LOADER = 0;
     private ArrayAdapter<String> _forecastAdapter;
 
     public ForecastFragment() {
@@ -104,6 +110,34 @@ public class ForecastFragment extends Fragment {
         return rootView;
     }
 
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        String locationSetting = Utility.getPreferredLocation(getActivity());
+
+        String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " ASC";
+        Uri weatherForLocationUri = WeatherContract.WeatherEntry.buildWeatherLocationWithStartDate(
+                locationSetting, System.currentTimeMillis()
+        );
+
+        return new CursorLoader(getActivity(),
+                weatherForLocationUri,
+                null,
+                null,
+                null,
+                sortOrder);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        //_forecastAdapter.swapCursor(cursor);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
+    }
+
+
     public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
         private final String LOG_TAG = FetchWeatherTask.class.getSimpleName();
 
@@ -112,7 +146,7 @@ public class ForecastFragment extends Fragment {
 
             // Always fetch metric, convert/manage locally conversion to imperial.
             // We can avoid a service round trip when users changes preference.
-            String units = "metric";
+            String units = getString(R.string.pref_units_metric);
             int numDays = 7;
 
             if (params.length == 0) return null;
